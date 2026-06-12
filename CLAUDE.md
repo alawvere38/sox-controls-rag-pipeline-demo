@@ -17,6 +17,8 @@ source citations and a strict-refusal guardrail.
 README.md            human-facing overview
 CLAUDE.md            this file
 knowledge-base/      the source documents the pipeline indexes (the ONLY folder to index)
+agent/               versioned copy of the agent system prompt (runtime copy lives in the n8n AI Agent node)
+evals/               golden eval set + regression harness; baseline pinned in evals/baseline.json
 ```
 
 ## Key technical decisions

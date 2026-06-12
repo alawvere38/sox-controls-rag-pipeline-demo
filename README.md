@@ -82,6 +82,7 @@ sox-controls-rag-pipeline/
   CLAUDE.md            <- working context for Claude Code
   assets/              <- screenshots of the live workflows and audit log
   knowledge-base/      <- the source documents the pipeline indexes (point n8n here)
+  agent/               <- versioned copy of the agent's system prompt (runtime copy lives in n8n)
   evals/               <- golden eval set + regression harness (see "Evaluation harness")
   supabase-setup.sql   <- one-time pgvector table + match_documents function
   .env.example         <- template for local secrets (webhook URL, OpenAI key)
