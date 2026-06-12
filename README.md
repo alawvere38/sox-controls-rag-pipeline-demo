@@ -8,6 +8,10 @@ document for every claim, or refuses when the answer isn't in the corpus.
 > *Crestline Manufacturing, Inc.*, and contains no real, proprietary, or employer data. It exists
 > to demonstrate the pipeline on realistic-looking material.
 
+**🔴 Try it live:** [SOX Controls Assistant](https://andrewlawvere.app.n8n.cloud/webhook/c1833055-00a8-42f9-8c9e-d011b8ac6649/chat) —
+ask *"How often is the user access review performed?"*, then something off-topic to see the
+strict refusal. Every question is logged to the audit trail below.
+
 ## What it does
 
 - Indexes a corpus of control narratives, a security policy, business-process narratives, and a
@@ -34,7 +38,8 @@ into pgvector. The last run produced 50+ section-level chunks from the 10 docume
 ### 2. Query agent (live)
 
 A chat-triggered Tools Agent (`gpt-4o-mini`, temperature 0.1) with the Supabase vector store
-attached as a retrieval tool (top-K 4). After the agent answers, a **Citation Guard** code node
+attached as a retrieval tool (top-K 4), served as a public
+[hosted chat](https://andrewlawvere.app.n8n.cloud/webhook/c1833055-00a8-42f9-8c9e-d011b8ac6649/chat). After the agent answers, a **Citation Guard** code node
 verifies the answer carries a `[source: ...]` citation — uncited answers are replaced with the
 strict refusal string — and every exchange is appended to the audit log before the reply is
 returned.
