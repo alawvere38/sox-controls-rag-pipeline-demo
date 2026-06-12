@@ -1,1 +1,4 @@
 .DS_Store
+.env
+evals/runs/
+__pycache__/

@@ -82,7 +82,9 @@ sox-controls-rag-pipeline/
   CLAUDE.md            <- working context for Claude Code
   assets/              <- screenshots of the live workflows and audit log
   knowledge-base/      <- the source documents the pipeline indexes (point n8n here)
+  evals/               <- golden eval set + regression harness (see "Evaluation harness")
   supabase-setup.sql   <- one-time pgvector table + match_documents function
+  .env.example         <- template for local secrets (webhook URL, OpenAI key)
 ```
 
 Keep `README.md` and `CLAUDE.md` out of the indexed folder so they aren't embedded into the
@@ -118,6 +120,45 @@ knowledge base — only the files in `knowledge-base/` should be indexed.
    citation; uncited answers are replaced with the refusal.
 3. **Relevance floor** — low top-K (4) and an optional similarity threshold keep weak matches out.
 4. **Audit log** — every query, retrieved sources, answer, and citation-check result is logged.
+
+## Evaluation harness
+
+A repeatable regression suite that scores the live agent on five metrics:
+
+| Metric | How it's scored |
+|---|---|
+| Refusal correctness | Deterministic — exact match against the strict refusal string |
+| Citation accuracy | Deterministic — cited `[source: ...]` files and control IDs vs. the answer key |
+| Retrieval quality | Deterministic — recall of expected source docs among what was actually retrieved |
+| Groundedness | LLM judge — every claim in the answer supported by the retrieved chunks |
+| Answer correctness | LLM judge — every expected key fact conveyed by the answer |
+
+The golden set (`evals/dataset.jsonl`, validated against the corpus by
+`evals/validate_dataset.py`) holds 24 questions across five categories: single-control,
+process-level, cross-document, out-of-scope, and not-in-corpus (the last two expect the exact
+refusal). All agent calls go through one adapter (`evals/adapter.py: query_agent`), so the
+harness can be repointed away from the n8n webhook by editing a single function. The judge
+prompts are versioned files in `evals/prompts/`; the judge model is `gpt-4o-mini` at
+temperature 0.
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env       # fill in the chat webhook URL + OpenAI key
+
+python3 -m evals.validate_dataset            # golden set consistent with the corpus?
+python3 -m pytest evals/                     # offline unit tests for the scorers
+python3 -m evals.run_evals                   # full scored run -> evals/runs/run-<ts>.json + .md
+python3 -m evals.run_evals --no-judge        # deterministic checks only (no OpenAI key needed)
+```
+
+Each run writes a JSON result file and a markdown report (overall, per-category, per-check,
+per-item). To catch regressions, pin a known-good run as the baseline and diff against it —
+the runner exits non-zero if any previously passing item now fails:
+
+```bash
+cp evals/runs/run-<ts>.json evals/baseline.json
+python3 -m evals.run_evals --baseline evals/baseline.json
+```
 
 ## Data handling
 
